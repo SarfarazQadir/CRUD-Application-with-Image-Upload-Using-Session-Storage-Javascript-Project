@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Details</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-family: Arial, sans-serif; }
+        form { margin-bottom: 20px; }
+        img { max-width: 100px; max-height: 100px; }
+        .student { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1 class="btn btn-success" style="text-align: center; align-items: center; justify-content: center; display: flex;">Developer Super League TASK Completed By Team Desi Developers</h1>
+    <h1 class="text-center">Student Details</h1>
+    <div class="container">
+        <fieldset>
+            <legend>Student Details</legend>
+            <form id="studentForm">
+                <input type="hidden" id="index" value="" />
+                <input type="text" id="name" class="form-control" placeholder="Enter your name" required><br>
+                <input type="number" id="age" class="form-control" placeholder="Enter your age" required><br>
+                <input type="text" id="batch" class="form-control" placeholder="Enter your batch" required><br>
+                <input type="file" id="pimg" class="form-control" accept="image/*"><br>
+                <button type="button" class="btn btn-primary" onclick="addOrUpdateStudent()">Add/Update</button><br><br>
+            </form>
+        </fieldset>
+
+        <div id="studentsList"></div>
+    </div>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script>
+        if (typeof(Storage) !== "undefined") {
+            function displayStudents() {
+                const students = JSON.parse(sessionStorage.getItem('students')) || [];
+                const studentsList = document.getElementById('studentsList');
+                studentsList.innerHTML = '';
+                students.forEach((student, index) => {
+                    const studentDiv = document.createElement('div');
+                    studentDiv.className = 'student';
+                    studentDiv.innerHTML = `
+                        <p>Name: ${student.name}</p>
+                        <p>Age: ${student.age}</p>
+                        <p>Batch: ${student.batch}</p>
+                        <img src="${student.image}" alt="Student Image">
+                        <button class="btn btn-secondary" onclick="populateForm(${index})">Update</button>
+                        <button class="btn btn-danger" onclick="deleteStudent(${index})">Delete</button>
+                    `;
+                    studentsList.appendChild(studentDiv);
+                });
+            }
+
+            function populateForm(index) {
+                const students = JSON.parse(sessionStorage.getItem('students')) || [];
+                document.getElementById('name').value = students[index].name;
+                document.getElementById('age').value = students[index].age;
+                document.getElementById('batch').value = students[index].batch;
+                document.getElementById('index').value = index;
+            }
+
+            function addOrUpdateStudent() {
+                const name = document.getElementById('name').value;
+                const age = document.getElementById('age').value;
+                const batch = document.getElementById('batch').value;
+                const index = document.getElementById('index').value;
+                const imageInput = document.getElementById('pimg');
+                const students = JSON.parse(sessionStorage.getItem('students')) || [];
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    const image = event.target.result || students[index]?.image;
+                    if (index) {
+                        students[index] = { name, age, batch, image };
+                    } else {
+                        students.push({ name, age, batch, image });
+                    }
+                    sessionStorage.setItem('students', JSON.stringify(students));
+                    displayStudents();
+                    document.getElementById('studentForm').reset();
+                    swal("Success!", "Student data has been added/updated.", "success");
+                };
+
+                if (imageInput.files.length > 0) {
+                    reader.readAsDataURL(imageInput.files[0]);
+                } else if (index) {
+                    reader.onloadend();
+                }
+            }
+
+            function deleteStudent(index) {
+                const students = JSON.parse(sessionStorage.getItem('students')) || [];
+                students.splice(index, 1);
+                sessionStorage.setItem('students', JSON.stringify(students));
+                displayStudents();
+                swal("Success!", "Student data has been deleted.", "success");
+            }
+
+            displayStudents();
+        } else {
+            alert('Session storage is not supported in this browser.');
+        }
+    </script>
+</body>
+</html>
